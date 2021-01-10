@@ -1,0 +1,563 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+  <!-- EF Runtime content -->
+  <edmx:Runtime>
+    <!-- SSDL content -->
+    <edmx:StorageModels>
+      <Schema Namespace="InspireModel.Store" Provider="System.Data.SqlClient" ProviderManifestToken="2012" Alias="Self" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
+        <EntityType Name="Centre">
+          <Key>
+            <PropertyRef Name="Centre_ID" />
+          </Key>
+          <Property Name="Centre_ID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Centre_Capacity" Type="int" Nullable="false" />
+          <Property Name="Centre_Name" Type="varchar" MaxLength="100" Nullable="false" />
+        </EntityType>
+        <EntityType Name="Course">
+          <Key>
+            <PropertyRef Name="Course_ID" />
+          </Key>
+          <Property Name="Course_ID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Course_Name" Type="varchar" MaxLength="50" Nullable="false" />
+          <Property Name="Course_Capacity" Type="int" Nullable="false" />
+        </EntityType>
+        <EntityType Name="Person">
+          <Key>
+            <PropertyRef Name="Person_ID" />
+          </Key>
+          <Property Name="Person_ID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Person_Name" Type="varchar" MaxLength="100" Nullable="false" />
+          <Property Name="Person_Surname" Type="varchar" MaxLength="100" Nullable="false" />
+          <Property Name="Person_Email" Type="varchar" MaxLength="150" Nullable="false" />
+          <Property Name="Person_Password" Type="varchar" MaxLength="150" Nullable="false" />
+          <Property Name="Person_Type" Type="varchar" MaxLength="50" Nullable="false" />
+          <Property Name="Person_Level" Type="varchar" MaxLength="50" Nullable="false" />
+          <Property Name="Person_School" Type="varchar" MaxLength="150" Nullable="false" />
+          <Property Name="DocFile" Type="nvarchar(max)" Nullable="false" />
+          <Property Name="Centre_ID" Type="int" />
+        </EntityType>
+        <!--Errors Found During Generation:
+warning 6002: The table/view 'Inspire.dbo.Person_Course' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
+        <EntityType Name="Person_Course">
+          <Key>
+            <PropertyRef Name="Person_Course_ID" />
+            <PropertyRef Name="Is_Active" />
+            <PropertyRef Name="Date_Reg" />
+            <PropertyRef Name="Date_Dereg" />
+            <PropertyRef Name="Dereg_Reason" />
+          </Key>
+          <Property Name="Person_Course_ID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Is_Active" Type="varchar" MaxLength="20" Nullable="false" />
+          <Property Name="Date_Reg" Type="date" Nullable="false" />
+          <Property Name="Date_Dereg" Type="date" Nullable="false" />
+          <Property Name="Dereg_Reason" Type="varchar" MaxLength="150" Nullable="false" />
+          <Property Name="Years" Type="date" />
+          <Property Name="Person_ID" Type="int" />
+          <Property Name="Course_ID" Type="int" />
+        </EntityType>
+        <EntityType Name="PersonSubject">
+          <Key>
+            <PropertyRef Name="Subject_ID" />
+          </Key>
+          <Property Name="Person_ID" Type="int" Nullable="false" />
+          <Property Name="Subject_ID" Type="int" Nullable="false" />
+          <Property Name="Person_Grade" Type="varchar" MaxLength="50" />
+        </EntityType>
+        <EntityType Name="Session">
+          <Key>
+            <PropertyRef Name="Session_ID" />
+          </Key>
+          <Property Name="Session_ID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Session_Number" Type="int" />
+          <Property Name="Subject_ID" Type="int" />
+        </EntityType>
+        <EntityType Name="Subject">
+          <Key>
+            <PropertyRef Name="Subject_ID" />
+          </Key>
+          <Property Name="Subject_ID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Subject_Name" Type="varchar" MaxLength="20" />
+          <Property Name="Course_ID" Type="int" Nullable="false" />
+        </EntityType>
+        <EntityType Name="sysdiagrams">
+          <Key>
+            <PropertyRef Name="diagram_id" />
+          </Key>
+          <Property Name="name" Type="nvarchar" MaxLength="128" Nullable="false" />
+          <Property Name="principal_id" Type="int" Nullable="false" />
+          <Property Name="diagram_id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="version" Type="int" />
+          <Property Name="definition" Type="varbinary(max)" />
+        </EntityType>
+        <Association Name="FK_Centre">
+          <End Role="Centre" Type="Self.Centre" Multiplicity="0..1" />
+          <End Role="Person" Type="Self.Person" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Centre">
+              <PropertyRef Name="Centre_ID" />
+            </Principal>
+            <Dependent Role="Person">
+              <PropertyRef Name="Centre_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Course">
+          <End Role="Course" Type="Self.Course" Multiplicity="0..1" />
+          <End Role="Person_Course" Type="Self.Person_Course" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Course">
+              <PropertyRef Name="Course_ID" />
+            </Principal>
+            <Dependent Role="Person_Course">
+              <PropertyRef Name="Course_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Person">
+          <End Role="Person" Type="Self.Person" Multiplicity="0..1" />
+          <End Role="Person_Course" Type="Self.Person_Course" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Person">
+              <PropertyRef Name="Person_ID" />
+            </Principal>
+            <Dependent Role="Person_Course">
+              <PropertyRef Name="Person_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_PersonSubject_Person">
+          <End Role="Person" Type="Self.Person" Multiplicity="1" />
+          <End Role="PersonSubject" Type="Self.PersonSubject" Multiplicity="0..1" />
+          <ReferentialConstraint>
+            <Principal Role="Person">
+              <PropertyRef Name="Person_ID" />
+            </Principal>
+            <Dependent Role="PersonSubject">
+              <PropertyRef Name="Subject_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_PersonSubject_Subject">
+          <End Role="Subject" Type="Self.Subject" Multiplicity="1" />
+          <End Role="PersonSubject" Type="Self.PersonSubject" Multiplicity="0..1" />
+          <ReferentialConstraint>
+            <Principal Role="Subject">
+              <PropertyRef Name="Subject_ID" />
+            </Principal>
+            <Dependent Role="PersonSubject">
+              <PropertyRef Name="Subject_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Subject">
+          <End Role="Subject" Type="Self.Subject" Multiplicity="0..1" />
+          <End Role="Session" Type="Self.Session" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Subject">
+              <PropertyRef Name="Subject_ID" />
+            </Principal>
+            <Dependent Role="Session">
+              <PropertyRef Name="Subject_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Subject_Course">
+          <End Role="Course" Type="Self.Course" Multiplicity="1" />
+          <End Role="Subject" Type="Self.Subject" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Course">
+              <PropertyRef Name="Course_ID" />
+            </Principal>
+            <Dependent Role="Subject">
+              <PropertyRef Name="Course_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityContainer Name="InspireModelStoreContainer">
+          <EntitySet Name="Centre" EntityType="Self.Centre" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="Course" EntityType="Self.Course" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="Person" EntityType="Self.Person" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="PersonSubject" EntityType="Self.PersonSubject" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="Session" EntityType="Self.Session" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="Subject" EntityType="Self.Subject" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="sysdiagrams" EntityType="Self.sysdiagrams" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="Person_Course" EntityType="Self.Person_Course" store:Type="Tables" store:Schema="dbo">
+            <DefiningQuery>SELECT 
+    [Person_Course].[Person_Course_ID] AS [Person_Course_ID], 
+    [Person_Course].[Is_Active] AS [Is_Active], 
+    [Person_Course].[Date_Reg] AS [Date_Reg], 
+    [Person_Course].[Date_Dereg] AS [Date_Dereg], 
+    [Person_Course].[Dereg_Reason] AS [Dereg_Reason], 
+    [Person_Course].[Years] AS [Years], 
+    [Person_Course].[Person_ID] AS [Person_ID], 
+    [Person_Course].[Course_ID] AS [Course_ID]
+    FROM [dbo].[Person_Course] AS [Person_Course]</DefiningQuery>
+          </EntitySet>
+          <AssociationSet Name="FK_Centre" Association="Self.FK_Centre">
+            <End Role="Centre" EntitySet="Centre" />
+            <End Role="Person" EntitySet="Person" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Course" Association="Self.FK_Course">
+            <End Role="Course" EntitySet="Course" />
+            <End Role="Person_Course" EntitySet="Person_Course" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Person" Association="Self.FK_Person">
+            <End Role="Person" EntitySet="Person" />
+            <End Role="Person_Course" EntitySet="Person_Course" />
+          </AssociationSet>
+          <AssociationSet Name="FK_PersonSubject_Person" Association="Self.FK_PersonSubject_Person">
+            <End Role="Person" EntitySet="Person" />
+            <End Role="PersonSubject" EntitySet="PersonSubject" />
+          </AssociationSet>
+          <AssociationSet Name="FK_PersonSubject_Subject" Association="Self.FK_PersonSubject_Subject">
+            <End Role="Subject" EntitySet="Subject" />
+            <End Role="PersonSubject" EntitySet="PersonSubject" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Subject" Association="Self.FK_Subject">
+            <End Role="Subject" EntitySet="Subject" />
+            <End Role="Session" EntitySet="Session" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Subject_Course" Association="Self.FK_Subject_Course">
+            <End Role="Course" EntitySet="Course" />
+            <End Role="Subject" EntitySet="Subject" />
+          </AssociationSet>
+        </EntityContainer>
+      </Schema>
+    </edmx:StorageModels>
+    <!-- CSDL content -->
+    <edmx:ConceptualModels>
+      <Schema Namespace="InspireModel" Alias="Self" annotation:UseStrongSpatialTypes="false" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm">
+        <EntityType Name="Centre">
+          <Key>
+            <PropertyRef Name="Centre_ID" />
+          </Key>
+          <Property Name="Centre_ID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Centre_Capacity" Type="Int32" Nullable="false" />
+          <Property Name="Centre_Name" Type="String" MaxLength="100" FixedLength="false" Unicode="false" Nullable="false" />
+          <NavigationProperty Name="People" Relationship="Self.FK_Centre" FromRole="Centre" ToRole="Person" />
+        </EntityType>
+        <EntityType Name="Course">
+          <Key>
+            <PropertyRef Name="Course_ID" />
+          </Key>
+          <Property Name="Course_ID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Course_Name" Type="String" MaxLength="50" FixedLength="false" Unicode="false" Nullable="false" />
+          <Property Name="Course_Capacity" Type="Int32" Nullable="false" />
+          <NavigationProperty Name="Person_Course" Relationship="Self.FK_Course" FromRole="Course" ToRole="Person_Course" />
+          <NavigationProperty Name="Subjects" Relationship="Self.FK_Subject_Course" FromRole="Course" ToRole="Subject" />
+        </EntityType>
+        <EntityType Name="Person">
+          <Key>
+            <PropertyRef Name="Person_ID" />
+          </Key>
+          <Property Name="Person_ID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Person_Name" Type="String" MaxLength="100" FixedLength="false" Unicode="false" Nullable="false" />
+          <Property Name="Person_Surname" Type="String" MaxLength="100" FixedLength="false" Unicode="false" Nullable="false" />
+          <Property Name="Person_Email" Type="String" MaxLength="150" FixedLength="false" Unicode="false" Nullable="false" />
+          <Property Name="Person_Password" Type="String" MaxLength="150" FixedLength="false" Unicode="false" Nullable="false" />
+          <Property Name="Person_Type" Type="String" MaxLength="50" FixedLength="false" Unicode="false" Nullable="false" />
+          <Property Name="Person_Level" Type="String" MaxLength="50" FixedLength="false" Unicode="false" Nullable="false" />
+          <Property Name="Person_School" Type="String" MaxLength="150" FixedLength="false" Unicode="false" Nullable="false" />
+          <Property Name="DocFile" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="Centre_ID" Type="Int32" />
+          <NavigationProperty Name="Centre" Relationship="Self.FK_Centre" FromRole="Person" ToRole="Centre" />
+          <NavigationProperty Name="Person_Course" Relationship="Self.FK_Person" FromRole="Person" ToRole="Person_Course" />
+          <NavigationProperty Name="PersonSubject" Relationship="Self.FK_PersonSubject_Person" FromRole="Person" ToRole="PersonSubject" />
+        </EntityType>
+        <EntityType Name="PersonSubject">
+          <Key>
+            <PropertyRef Name="Subject_ID" />
+          </Key>
+          <Property Name="Person_ID" Type="Int32" Nullable="false" />
+          <Property Name="Subject_ID" Type="Int32" Nullable="false" />
+          <Property Name="Person_Grade" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <NavigationProperty Name="Person" Relationship="Self.FK_PersonSubject_Person" FromRole="PersonSubject" ToRole="Person" />
+          <NavigationProperty Name="Subject" Relationship="Self.FK_PersonSubject_Subject" FromRole="PersonSubject" ToRole="Subject" />
+        </EntityType>
+        <EntityType Name="Session">
+          <Key>
+            <PropertyRef Name="Session_ID" />
+          </Key>
+          <Property Name="Session_ID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Session_Number" Type="Int32" />
+          <Property Name="Subject_ID" Type="Int32" />
+          <NavigationProperty Name="Subject" Relationship="Self.FK_Subject" FromRole="Session" ToRole="Subject" />
+        </EntityType>
+        <EntityType Name="Subject">
+          <Key>
+            <PropertyRef Name="Subject_ID" />
+          </Key>
+          <Property Name="Subject_ID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Subject_Name" Type="String" MaxLength="20" FixedLength="false" Unicode="false" />
+          <Property Name="Course_ID" Type="Int32" Nullable="false" />
+          <NavigationProperty Name="Course" Relationship="Self.FK_Subject_Course" FromRole="Subject" ToRole="Course" />
+          <NavigationProperty Name="PersonSubject" Relationship="Self.FK_PersonSubject_Subject" FromRole="Subject" ToRole="PersonSubject" />
+          <NavigationProperty Name="Sessions" Relationship="Self.FK_Subject" FromRole="Subject" ToRole="Session" />
+        </EntityType>
+        <EntityType Name="sysdiagram">
+          <Key>
+            <PropertyRef Name="diagram_id" />
+          </Key>
+          <Property Name="name" Type="String" MaxLength="128" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="principal_id" Type="Int32" Nullable="false" />
+          <Property Name="diagram_id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="version" Type="Int32" />
+          <Property Name="definition" Type="Binary" MaxLength="Max" FixedLength="false" />
+        </EntityType>
+        <EntityType Name="Person_Course">
+          <Key>
+            <PropertyRef Name="Person_Course_ID" />
+            <PropertyRef Name="Is_Active" />
+            <PropertyRef Name="Date_Reg" />
+            <PropertyRef Name="Date_Dereg" />
+            <PropertyRef Name="Dereg_Reason" />
+          </Key>
+          <Property Name="Person_Course_ID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Is_Active" Type="String" MaxLength="20" FixedLength="false" Unicode="false" Nullable="false" />
+          <Property Name="Date_Reg" Type="DateTime" Nullable="false" Precision="0" />
+          <Property Name="Date_Dereg" Type="DateTime" Nullable="false" Precision="0" />
+          <Property Name="Dereg_Reason" Type="String" MaxLength="150" FixedLength="false" Unicode="false" Nullable="false" />
+          <Property Name="Years" Type="DateTime" Precision="0" />
+          <Property Name="Person_ID" Type="Int32" />
+          <Property Name="Course_ID" Type="Int32" />
+          <NavigationProperty Name="Course" Relationship="Self.FK_Course" FromRole="Person_Course" ToRole="Course" />
+          <NavigationProperty Name="Person" Relationship="Self.FK_Person" FromRole="Person_Course" ToRole="Person" />
+        </EntityType>
+        <Association Name="FK_Centre">
+          <End Role="Centre" Type="Self.Centre" Multiplicity="0..1" />
+          <End Role="Person" Type="Self.Person" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Centre">
+              <PropertyRef Name="Centre_ID" />
+            </Principal>
+            <Dependent Role="Person">
+              <PropertyRef Name="Centre_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Course">
+          <End Role="Course" Type="Self.Course" Multiplicity="0..1" />
+          <End Role="Person_Course" Type="Self.Person_Course" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Course">
+              <PropertyRef Name="Course_ID" />
+            </Principal>
+            <Dependent Role="Person_Course">
+              <PropertyRef Name="Course_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Subject_Course">
+          <End Role="Course" Type="Self.Course" Multiplicity="1" />
+          <End Role="Subject" Type="Self.Subject" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Course">
+              <PropertyRef Name="Course_ID" />
+            </Principal>
+            <Dependent Role="Subject">
+              <PropertyRef Name="Course_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Person">
+          <End Role="Person" Type="Self.Person" Multiplicity="0..1" />
+          <End Role="Person_Course" Type="Self.Person_Course" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Person">
+              <PropertyRef Name="Person_ID" />
+            </Principal>
+            <Dependent Role="Person_Course">
+              <PropertyRef Name="Person_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_PersonSubject_Person">
+          <End Role="Person" Type="Self.Person" Multiplicity="1" />
+          <End Role="PersonSubject" Type="Self.PersonSubject" Multiplicity="0..1" />
+          <ReferentialConstraint>
+            <Principal Role="Person">
+              <PropertyRef Name="Person_ID" />
+            </Principal>
+            <Dependent Role="PersonSubject">
+              <PropertyRef Name="Subject_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_PersonSubject_Subject">
+          <End Role="Subject" Type="Self.Subject" Multiplicity="1" />
+          <End Role="PersonSubject" Type="Self.PersonSubject" Multiplicity="0..1" />
+          <ReferentialConstraint>
+            <Principal Role="Subject">
+              <PropertyRef Name="Subject_ID" />
+            </Principal>
+            <Dependent Role="PersonSubject">
+              <PropertyRef Name="Subject_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Subject">
+          <End Role="Subject" Type="Self.Subject" Multiplicity="0..1" />
+          <End Role="Session" Type="Self.Session" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Subject">
+              <PropertyRef Name="Subject_ID" />
+            </Principal>
+            <Dependent Role="Session">
+              <PropertyRef Name="Subject_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityContainer Name="InspireEntities" annotation:LazyLoadingEnabled="true">
+          <EntitySet Name="Centres" EntityType="Self.Centre" />
+          <EntitySet Name="Courses" EntityType="Self.Course" />
+          <EntitySet Name="People" EntityType="Self.Person" />
+          <EntitySet Name="PersonSubjects" EntityType="Self.PersonSubject" />
+          <EntitySet Name="Sessions" EntityType="Self.Session" />
+          <EntitySet Name="Subjects" EntityType="Self.Subject" />
+          <EntitySet Name="sysdiagrams" EntityType="Self.sysdiagram" />
+          <EntitySet Name="Person_Course" EntityType="Self.Person_Course" />
+          <AssociationSet Name="FK_Centre" Association="Self.FK_Centre">
+            <End Role="Centre" EntitySet="Centres" />
+            <End Role="Person" EntitySet="People" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Course" Association="Self.FK_Course">
+            <End Role="Course" EntitySet="Courses" />
+            <End Role="Person_Course" EntitySet="Person_Course" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Subject_Course" Association="Self.FK_Subject_Course">
+            <End Role="Course" EntitySet="Courses" />
+            <End Role="Subject" EntitySet="Subjects" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Person" Association="Self.FK_Person">
+            <End Role="Person" EntitySet="People" />
+            <End Role="Person_Course" EntitySet="Person_Course" />
+          </AssociationSet>
+          <AssociationSet Name="FK_PersonSubject_Person" Association="Self.FK_PersonSubject_Person">
+            <End Role="Person" EntitySet="People" />
+            <End Role="PersonSubject" EntitySet="PersonSubjects" />
+          </AssociationSet>
+          <AssociationSet Name="FK_PersonSubject_Subject" Association="Self.FK_PersonSubject_Subject">
+            <End Role="Subject" EntitySet="Subjects" />
+            <End Role="PersonSubject" EntitySet="PersonSubjects" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Subject" Association="Self.FK_Subject">
+            <End Role="Subject" EntitySet="Subjects" />
+            <End Role="Session" EntitySet="Sessions" />
+          </AssociationSet>
+        </EntityContainer>
+      </Schema>
+    </edmx:ConceptualModels>
+    <!-- C-S mapping content -->
+    <edmx:Mappings>
+      <Mapping Space="C-S" xmlns="http://schemas.microsoft.com/ado/2009/11/mapping/cs">
+        <EntityContainerMapping StorageEntityContainer="InspireModelStoreContainer" CdmEntityContainer="InspireEntities">
+          <EntitySetMapping Name="Centres">
+            <EntityTypeMapping TypeName="InspireModel.Centre">
+              <MappingFragment StoreEntitySet="Centre">
+                <ScalarProperty Name="Centre_ID" ColumnName="Centre_ID" />
+                <ScalarProperty Name="Centre_Capacity" ColumnName="Centre_Capacity" />
+                <ScalarProperty Name="Centre_Name" ColumnName="Centre_Name" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Courses">
+            <EntityTypeMapping TypeName="InspireModel.Course">
+              <MappingFragment StoreEntitySet="Course">
+                <ScalarProperty Name="Course_ID" ColumnName="Course_ID" />
+                <ScalarProperty Name="Course_Name" ColumnName="Course_Name" />
+                <ScalarProperty Name="Course_Capacity" ColumnName="Course_Capacity" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="People">
+            <EntityTypeMapping TypeName="InspireModel.Person">
+              <MappingFragment StoreEntitySet="Person">
+                <ScalarProperty Name="Person_ID" ColumnName="Person_ID" />
+                <ScalarProperty Name="Person_Name" ColumnName="Person_Name" />
+                <ScalarProperty Name="Person_Surname" ColumnName="Person_Surname" />
+                <ScalarProperty Name="Person_Email" ColumnName="Person_Email" />
+                <ScalarProperty Name="Person_Password" ColumnName="Person_Password" />
+                <ScalarProperty Name="Person_Type" ColumnName="Person_Type" />
+                <ScalarProperty Name="Person_Level" ColumnName="Person_Level" />
+                <ScalarProperty Name="Person_School" ColumnName="Person_School" />
+                <ScalarProperty Name="DocFile" ColumnName="DocFile" />
+                <ScalarProperty Name="Centre_ID" ColumnName="Centre_ID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="PersonSubjects">
+            <EntityTypeMapping TypeName="InspireModel.PersonSubject">
+              <MappingFragment StoreEntitySet="PersonSubject">
+                <ScalarProperty Name="Person_ID" ColumnName="Person_ID" />
+                <ScalarProperty Name="Subject_ID" ColumnName="Subject_ID" />
+                <ScalarProperty Name="Person_Grade" ColumnName="Person_Grade" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Sessions">
+            <EntityTypeMapping TypeName="InspireModel.Session">
+              <MappingFragment StoreEntitySet="Session">
+                <ScalarProperty Name="Session_ID" ColumnName="Session_ID" />
+                <ScalarProperty Name="Session_Number" ColumnName="Session_Number" />
+                <ScalarProperty Name="Subject_ID" ColumnName="Subject_ID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Subjects">
+            <EntityTypeMapping TypeName="InspireModel.Subject">
+              <MappingFragment StoreEntitySet="Subject">
+                <ScalarProperty Name="Subject_ID" ColumnName="Subject_ID" />
+                <ScalarProperty Name="Subject_Name" ColumnName="Subject_Name" />
+                <ScalarProperty Name="Course_ID" ColumnName="Course_ID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="sysdiagrams">
+            <EntityTypeMapping TypeName="InspireModel.sysdiagram">
+              <MappingFragment StoreEntitySet="sysdiagrams">
+                <ScalarProperty Name="name" ColumnName="name" />
+                <ScalarProperty Name="principal_id" ColumnName="principal_id" />
+                <ScalarProperty Name="diagram_id" ColumnName="diagram_id" />
+                <ScalarProperty Name="version" ColumnName="version" />
+                <ScalarProperty Name="definition" ColumnName="definition" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Person_Course">
+            <EntityTypeMapping TypeName="InspireModel.Person_Course">
+              <MappingFragment StoreEntitySet="Person_Course">
+                <ScalarProperty Name="Person_Course_ID" ColumnName="Person_Course_ID" />
+                <ScalarProperty Name="Is_Active" ColumnName="Is_Active" />
+                <ScalarProperty Name="Date_Reg" ColumnName="Date_Reg" />
+                <ScalarProperty Name="Date_Dereg" ColumnName="Date_Dereg" />
+                <ScalarProperty Name="Dereg_Reason" ColumnName="Dereg_Reason" />
+                <ScalarProperty Name="Years" ColumnName="Years" />
+                <ScalarProperty Name="Person_ID" ColumnName="Person_ID" />
+                <ScalarProperty Name="Course_ID" ColumnName="Course_ID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+        </EntityContainerMapping>
+      </Mapping>
+    </edmx:Mappings>
+  </edmx:Runtime>
+  <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <Connection>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="MetadataArtifactProcessing" Value="EmbedInOutputAssembly" />
+      </DesignerInfoPropertySet>
+    </Connection>
+    <Options>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="ValidateOnBuild" Value="true" />
+        <DesignerProperty Name="EnablePluralization" Value="true" />
+        <DesignerProperty Name="IncludeForeignKeysInModel" Value="true" />
+        <DesignerProperty Name="UseLegacyProvider" Value="false" />
+        <DesignerProperty Name="CodeGenerationStrategy" Value="None" />
+      </DesignerInfoPropertySet>
+    </Options>
+    <!-- Diagram content (shape and connector positions) -->
+    <Diagrams></Diagrams>
+  </Designer>
+</edmx:Edmx>
