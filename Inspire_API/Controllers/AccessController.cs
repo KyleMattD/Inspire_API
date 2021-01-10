@@ -18,50 +18,7 @@ namespace Inspire_API.Controllers
         private string _key = "GuessThePasswordToThisSiteAndGetACookieFromMeOrIGetACookieFromYou";
 
 
-        private IFGAfricaEntities db = new IFGAfricaEntities();
-
-
-        /*[HttpPost]
-        [Route("api/Learner/Register")]
-        public IHttpActionResult Register(UserRegister user)
-        {
-            var finduser = db.Users.Where(x => x.User_Email == user.Email).FirstOrDefault();
-            if (finduser == null)
-            {
-                user.Password = encrypt(user.Password);
-                User addUser = new User();
-                addUser.User_Email = user.Email;
-                addUser.User_Password = user.Password;
-
-
-                Learner faddLearner = new Learner();
-                faddLearner.Learner_ID = user.Id;
-                faddLearner.Learner_Name = user.Name;
-                faddLearner.Learner_Surname = user.Surname;
-                faddLearner.Learner_DOB = user.DOB;
-                faddLearner.Learner_Address = user.Adress;
-                faddLearner.Learner_DocFile = user.DocFile;
-
-                db.Users.Add(addUser);
-                db.SaveChanges();
-
-                var id = db.Users.Where(x => x.User_Email == user.Email).FirstOrDefault().User_ID;
-
-                faddLearner.User_ID = id;
-
-                db.Learner.Add(faddUser);
-                db.SaveChanges();
-
-
-                return Ok("1 row affected");
-            }
-            else
-            {
-                return Unauthorized();
-            }
-
-        }*/
-
+        private InspireEntities db = new InspireEntities();
 
         [HttpPost]
         [Route("api/UserExists")]
