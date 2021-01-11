@@ -11,7 +11,14 @@ namespace Inspire_API.Models
         public string Password;
         public string Name;
         public string Surname;
-        public string Address;
-        public DateTime DOB;
+        public string Level;
+        public string Type;
+        public string School;
+        public int Course_ID;
+        public int Subject_ID;
+        public string Grade;
+        public string DocFile;
+        public int Centre_ID;
+
     }
 }

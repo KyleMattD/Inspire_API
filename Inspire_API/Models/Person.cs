@@ -35,5 +35,6 @@ namespace Inspire_API.Models
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<Person_Course> Person_Course { get; set; }
         public virtual PersonSubject PersonSubject { get; set; }
+        public bool Is_Active { get; internal set; }
     }
 }

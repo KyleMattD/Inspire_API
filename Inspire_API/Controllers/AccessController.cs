@@ -10,6 +10,12 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Web.Http;
 using Microsoft.IdentityModel.Tokens;
+using Inspire_API.Models;
+using System.Web.Configuration;
+using System.Web.Http.Cors;
+using System.Web.Http.Description;
+using MassTransit.Contracts.Conductor;
+using System.Data.Linq;
 
 namespace Inspire_API.Controllers
 {
@@ -27,8 +33,8 @@ namespace Inspire_API.Controllers
 
             var someText = ID.Content.ReadAsStringAsync().Result;
 
-            var ID1 = db.Learner.Where(x => x.Learner_ID == someText).FirstOrDefault();
-            var ID2 = db.Users.Where(x => x.User_Email == someText).FirstOrDefault();
+            var ID1 = db.People.Where(x => x.Person_Name == someText).FirstOrDefault();
+            var ID2 = db.People.Where(x => x.Person_Email == someText).FirstOrDefault();
 
             if (ID1 != null || ID2 != null)
             {
@@ -40,38 +46,42 @@ namespace Inspire_API.Controllers
             }
         }
 
-
         [HttpPost]
         [AllowAnonymous]
         [Route("api/User/Register")]
         //[EnableCors(origins: "*", headers: "*", methods: "*")]
-        public IHttpActionResult InsuranceRegister(Register User)
+        public IHttpActionResult PersonRegister(Register person)
         {
-            var finduser = db.Users.Where(x => x.User_Email == User.User_Email).FirstOrDefault();
+            var finduser = db.People.Where(x => x.Person_Email == person.Email).FirstOrDefault();
             if (finduser == null)
             {
-                User.User_Password = encrypt(User.User_Password);
-                User addUser = new User();
-                addUser.User_Email = User.User_Email;
-                addUser.User_Password =User.User_Password;
+                person.Password = encrypt(person.Password);
+                Person addUser = new Person();
+                addUser.Person_Email = person.Email;
+                addUser.Person_Password =person.Password;
 
-                User faddUser = new User();
-                faddUser.Learner_Name = User.User_Name;
-                faddUser.Learner_Surname = User.User_Surname;
-                faddUser.Learner_DOB = User.User_DOB;
-                faddUser.Learner_Address = User.Address;
-                faddUser.Learner_Grade = User.Current_Grade;
-                faddUser.Learner_School = User.Current_School;
+                Person paddUser = new Person();
+                paddUser.Person_Name = person.Name;
+                paddUser.Person_Surname = person.Surname;
+                paddUser.Person_Level = person.Level;
+                paddUser.Person_School = person.School;
+                paddUser.DocFile = person.DocFile;
+                paddUser.Person_ID = person.Centre_ID;
 
+                Person_Course addCourse = new Person_Course();
+                addCourse.Person_ID = person.Course_ID;
 
-                db.Users.Add(addUser);
+                PersonSubject addSubject = new PersonSubject();
+                addSubject.Person_ID = person.Subject_ID;
+
+                db.PersonSubjects.Add(addSubject);
+                db.Person_Course.Add(addCourse);
+                db.People.Add(addUser);
                 db.SaveChanges();
 
-                var id = db.Users.Where(x => x.User_Email == User.User_Email).FirstOrDefault().User_ID;
+                var id = db.People.Where(x => x.Person_Email == person.Email).FirstOrDefault().Person_ID;
 
-                faddUser.User_ID = id;
-
-                db.Insurance_Provider.Add(faddUser);
+                paddUser.Person_ID = id;
                 db.SaveChanges();
 
                 return Ok("1 row affected");
@@ -85,39 +95,37 @@ namespace Inspire_API.Controllers
 
         [HttpPost]
         [Route("api/UserExists")]
-        public IHttpActionResult InsuranceUserExists(HttpRequestMessage ID)
+        public IHttpActionResult PersonExists(HttpRequestMessage ID)
         {
 
             var someText = ID.Content.ReadAsStringAsync().Result;
 
-            var ID1 = db.User.Where(x => x.IP_ID.ToString() == someText).FirstOrDefault();
-            var ID2 = db.Users.Where(x => x.User_Email == someText).FirstOrDefault();
+            var ID1 = db.People.Where(x => x.Person_ID.ToString() == someText).FirstOrDefault();
+            var ID2 = db.People.Where(x => x.Person_Email == someText).FirstOrDefault();
 
             if (ID1 != null || ID2 != null)
             {
                 return Unauthorized();
-            }
+            } 
             else
             {
                 return Ok();
             }
         }
 
-
-
         [HttpPost]
         [Route("api/User/Login")]
-        public IHttpActionResult Login(User user)
+        public IHttpActionResult Login(Person person)
         {
-            var finduser = db.Users.Where(x => x.User_Email == user.User_Email).FirstOrDefault();
+            var finduser = db.People.Where(x => x.Person_Email == person.Person_Email).FirstOrDefault();
 
-            var encPass = encrypt(user.User_Password);
-            if (finduser != null && finduser.User_Password == encPass)
+            var encPass = encrypt(person.Person_Password);
+            if (finduser != null && finduser.Person_Password == encPass)
             {
 
                 var claims = new[]
                 {
-                   new Claim(ClaimTypes.Name,finduser.User_ID.ToString())
+                   new Claim(ClaimTypes.Name,finduser.Person_ID.ToString())
                 };
                 var keytoReturn = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_key));
 
@@ -139,13 +147,11 @@ namespace Inspire_API.Controllers
                 );
 
             }
-
             return Unauthorized();
-
         }
 
 
-
+        //===============================================================encryption of password=========================================================================================
         private string encrypt(string Pass)
         {
             var toEncrypt = Encoding.UTF8.GetBytes(Pass);
@@ -162,19 +168,18 @@ namespace Inspire_API.Controllers
         }
 
 
-
         //===============================================================================Forgot and set new password====================================================================
         [HttpPost]
         [Route("api/submitforgot")]
         public IHttpActionResult submitForgot(HttpRequestMessage email)
         {
             string ID = email.Content.ReadAsStringAsync().Result;
-            var query = from user in db.Users
-                        where user.User_Email == ID
+            var query = from Person in db.People
+                        where Person.Person_Email == ID
                         select new
                         {
-                            User_ID = user.User_ID,
-                            User_Email = user.User_Email
+                            User_ID = Person.Person_ID,
+                            User_Email = Person.Person_Email
                         };
 
             try
@@ -191,7 +196,7 @@ namespace Inspire_API.Controllers
                     mail.From = new MailAddress("kyledrotsky@gmail.com");
                     mail.To.Add(result.User_Email);
                     mail.Subject = "Password reset";
-                    mail.Body = "Please click on the following link to reset your AgriLog password. " + link;
+                    mail.Body = "Please click on the following link to reset your AgriLog password. " + Url;
 
 
                     using (SmtpClient smtp = new SmtpClient("smtp.gmail.com", 587))
@@ -220,10 +225,10 @@ namespace Inspire_API.Controllers
         {
             try
             {
-                var User = db.Users.Where(x => x.User_ID == userID).FirstOrDefault();
+                var User = db.People.Where(x => x.Person_ID == userID).FirstOrDefault();
                 var password = newPass.Content.ReadAsStringAsync().Result;
                 password = encrypt(password);
-                User.User_Password = password;
+                User.Person_Password = password;
 
                 db.SaveChanges();
 

@@ -5,7 +5,16 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Web.Http;
-using Microsoft.AspNetCore.Cors;
+using Inspire_API.Models;
+using System.Web.Http.Cors;
+using System.IdentityModel.Tokens.Jwt;
+using System.Net.Mail;
+using System.Security.Claims;
+using System.Security.Cryptography;
+using System.Text;
+using Microsoft.IdentityModel.Tokens;
+using System.Web.Configuration;
+using System.Web.Http.Description;
 
 namespace Inspire_API.Controllers
 {
@@ -18,20 +27,26 @@ namespace Inspire_API.Controllers
         [HttpGet]
         public IHttpActionResult getCourse(int UserID, Course Course)
         {
-            var query = 
+            var query = from p in db.People
+                        join pc in db.Person_Course on p.Person_ID equals pc.Person_ID
+                        where p.Person_ID == UserID
+                        select new
+                        {
+
+                        };
 
 
-            List<dynamic> Course = new List<dynamic>();
+            List < dynamic > Courses = new List<dynamic>();
             try
             {
-                Course = query.ToList<dynamic>();
+                Courses = query.ToList<dynamic>();
             }
             catch (Exception e)
             {
                 return Content(HttpStatusCode.BadRequest, "Error");
 
             }
-            if (Course.Count > 0)
+            if (Courses.Count > 0)
             {
                 dynamic toReturn = new ExpandoObject();
                 toReturn.CourseList = Course;
@@ -52,7 +67,14 @@ namespace Inspire_API.Controllers
             dynamic toReturn = new ExpandoObject();
             try
             {
-                var query = 
+                var query = from s in db.Subjects
+                            join ps in db.PersonSubjects on s.Subject_ID equals ps.Subject_ID
+                            where ps.Subject_ID == id
+                            select new
+                            { 
+                            
+                            };
+
 
                 toReturn = query.ToList().FirstOrDefault();
             }
@@ -77,18 +99,54 @@ namespace Inspire_API.Controllers
             Course toUpdate = new Course();
             try
             {
-                toUpdate = db.Farms.Where(f => f.Farm_ID == id).FirstOrDefault();
-                toUpdate.Farm_Name = putfarm.Farm_Name;
-                toUpdate.Farm_Size = putfarm.Farm_Size;
-                toUpdate.Farm_Email = putfarm.Farm_Email;
-                toUpdate.Farm_ContactNumber = putfarm.Farm_ContactNumber;
-                toUpdate.Farm_Address = putfarm.Farm_Address;
-                toUpdate.Farm_Type_ID = putfarm.Farm_Type_ID;
-                toUpdate.Province_ID = putfarm.Province_ID;
-                toUpdate.Is_Active = putfarm.Is_Active;
+                toUpdate = db.Courses.Where(f => f.Course_ID == id).FirstOrDefault();
+                toUpdate.Course_Name = putCourse.Course_Name;
+                toUpdate.Course_Capacity = putCourse.Course_Capacity;
                 db.SaveChanges();
 
                 var auditQuery = 
+                db.SaveChanges();
+
+                return Content(HttpStatusCode.OK, "1 Row Affected");
+            }
+            catch (Exception e)
+            {
+                if (!CourseExists(id))
+                {
+
+                    return Content(HttpStatusCode.BadRequest, "Course doesnt exist");
+                }
+                else
+                {
+                    return Content(HttpStatusCode.BadRequest, "Edit Failed");
+                }
+            }
+        }
+
+        private bool CourseExists(int id)
+        {
+            throw new NotImplementedException();
+        }
+
+        [Route("api/Course/put/{id}")]
+        [EnableCors(origins: "*", headers: "*", methods: "*")]
+        public IHttpActionResult putPerson(int id, Person putPerson)
+        {
+            Person toUpdate = new Person();
+            try
+            {
+                toUpdate = db.People.Where(f => f.Person_ID == id).FirstOrDefault();
+                toUpdate.Person_Name = putPerson.Person_Name;
+                toUpdate.Person_Surname = putPerson.Person_Surname;
+                toUpdate.Person_Email = putPerson.Person_Email;
+                toUpdate.Person_Level = putPerson.Person_Level;
+                toUpdate.Person_School = putPerson.Person_School;
+                toUpdate.Centre_ID = putPerson.Centre_ID;
+                toUpdate.Person_Course = putPerson.Person_Course;
+                toUpdate.PersonSubject = putPerson.PersonSubject;
+                db.SaveChanges();
+
+                var auditQuery =
                 db.SaveChanges();
 
                 return Content(HttpStatusCode.OK, "1 Row Affected");
@@ -113,39 +171,39 @@ namespace Inspire_API.Controllers
         [EnableCors(origins: "*", headers: "*", methods: "*")]
         [HttpPost]
         [Route("api/Course/add/{UserID}")]
-        public IHttpActionResult postCourse(int userID, Course newCourse)
+        public IHttpActionResult postCourse(int userID,  Course newCourse)
         {
-            
+            Course newEntry = new Course();
             if (newCourse != null)
             {
                 try
                 {
-                    newCourse.Person_ID = 4;
-                    db.Course.Add(newCourse);
-                    db.SaveChanges();
+                    db.Courses.Add(newCourse);
 
+                    db.SaveChanges();
                     var addedCourseID = newCourse.Course_ID;
 
-                    var query = 
+                    var query = from c in db.Courses
+                                join pc in db.Person_Course on
+                                c.Course_ID equals pc.Course_ID
+                                where pc.Course_ID == userID
+                                select new
+                                {
 
-                    var fUserID = query.FirstOrDefault().Person_ID;
+                                };
 
                     newEntry.Course_ID = addedCourseID;
-                    newEntry.User_Type_ID = 1;
+                    newEntry.Course_ID = 2;
 
-                    db.PersonCourse.Add(newEntry);
-                    db.SaveChanges();
-
-                    var auditQuery = 
-
+                    db.Courses.Add(newEntry);
                     db.SaveChanges();
                 }
                 catch (Exception e)
                 {
-                    db.Farms.Remove(newCourse);
+                    db.Courses.Remove(newCourse);
                     try
                     {
-                        db.PersonCourse(newEntry);
+                        db.Courses.Add(newEntry);
                     }
                     catch (Exception x)
                     {
@@ -169,37 +227,39 @@ namespace Inspire_API.Controllers
         [Route("api/Subject/add/{UserID}")]
         public IHttpActionResult postSubject(int userID, Subject newSubject)
         {
-
+            Person_Course newEntry = new Person_Course();
             if (newSubject != null)
             {
                 try
                 {
-                    newSubject.Person_ID = 4;
-                    db.Course.Add(newSubject);
+                    db.Subjects.Add(newSubject);
                     db.SaveChanges();
 
                     var addedSubjectID = newSubject.Subject_ID;
 
-                    var query =
+                    var query = from s in db.Subjects
+                                join ps in db.PersonSubjects on s.Subject_ID equals ps.Subject_ID
+                                where s.Subject_ID == userID
+                                select new 
+                                { 
 
-                    var fUserID = query.FirstOrDefault().Person_ID;
+                                };
 
-                    newEntry.Subject_ID = addedSubjectID;
-                    newEntry.User_Type_ID = 2;
 
-                    db.PersonSubject.Add(newEntry);
-                    db.SaveChanges();
+                    var UserID = query.FirstOrDefault();
 
-                    var auditQuery =
+                    newEntry.Course_ID = addedSubjectID;
+                    newEntry.Person_Course_ID= 2;
 
+                    db.Person_Course.Add(newEntry);
                     db.SaveChanges();
                 }
                 catch (Exception e)
                 {
-                    db.Farms.Remove(newSubject);
+                    db.Subjects.Remove(newSubject);
                     try
                     {
-                        db.PersonCourse(newEntry);
+                        db.Person_Course(newEntry);
                     }
                     catch (Exception x)
                     {
@@ -224,9 +284,8 @@ namespace Inspire_API.Controllers
         {
             try
             {
-                var Subject = db.Subject.Where(f => f.CourseID == id).FirstOrDefault();
-                var Subject = db.Person.Where(x => x.PersonID == CourseID).FirstOrDefault();
-                Subject.Is_Active = true;
+                var Subject = db.Subjects.Where(f => f.Subject_ID == id).FirstOrDefault();
+                var subject = db.Subjects.Where(x => x.PersonSubject.Subject_ID == id).FirstOrDefault();
                 db.SaveChanges();
 
                 var auditQuery = 
@@ -241,17 +300,24 @@ namespace Inspire_API.Controllers
             return Content(HttpStatusCode.OK, "1 Row affected");
         }
 
-        [Route("api/Farm/delete/{id}")]
+        [Route("api/Person/delete/{id}")]
         [EnableCors(origins: "*", headers: "*", methods: "*")]
         public IHttpActionResult deletePerson(int id)
         {
             try
             {
-                var Person = db.Person.Where(f => f.PersonID == id).FirstOrDefault();
-                Person.Is_Active = true;
+                var Person = db.People.Where(f => f.Person_ID == id).FirstOrDefault();
+                Person.Is_Active = false;
                 db.SaveChanges();
 
-                var auditQuery =
+                var auditQuery = from p in db.People
+                                 join pc in db.Person_Course on p.Person_ID equals pc.Person_ID
+                                 join ps in db.PersonSubjects on p.Person_ID equals ps.Person_ID
+                                 where p.Person_ID == id
+                                 select new
+                                 {
+
+                                 };
 
                 db.SaveChanges();
 
