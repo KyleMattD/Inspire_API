@@ -14,7 +14,6 @@ namespace Inspire_API.Models
     
     public partial class Person
     {
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
         public Person()
         {
             this.Person_Course = new HashSet<Person_Course>();
@@ -36,5 +35,7 @@ namespace Inspire_API.Models
         public virtual ICollection<Person_Course> Person_Course { get; set; }
         public virtual PersonSubject PersonSubject { get; set; }
         public bool Is_Active { get; internal set; }
+        public string Image { get; internal set; }
+
     }
 }
