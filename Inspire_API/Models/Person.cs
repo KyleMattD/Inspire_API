@@ -36,6 +36,6 @@ namespace Inspire_API.Models
         public virtual PersonSubject PersonSubject { get; set; }
         public bool Is_Active { get; internal set; }
         public string Image { get; internal set; }
-
+        public string ImageName { get; internal set; }
     }
 }

@@ -26,16 +26,21 @@ namespace Inspire_API.Controllers
         private InspireEntities db = new InspireEntities();
 
         [EnableCors(origins: "*", headers: "*", methods: "*")]
-        [Route("api/Farm/{UserID}")]
+        [Route("api/Course/{UserID}")]
         [HttpGet]
         public IHttpActionResult getCourse(int UserID, Course Course)
         {
             var query = from p in db.People
                         join pc in db.Person_Course on p.Person_ID equals pc.Person_ID
+                        join c in db.Courses on pc.Course_ID equals c.Course_ID
                         where p.Person_ID == UserID
                         select new
                         {
-
+                            Course_ID = pc.Course_ID,
+                            Person_ID = p.Person_ID,
+                            Name = c.Course_Name,
+                            Capacity = c.Course_Capacity, 
+                            Grade = p.Person_Level
                         };
 
 
@@ -62,9 +67,53 @@ namespace Inspire_API.Controllers
             }
         }
 
+        [EnableCors(origins: "*", headers: "*", methods: "*")]
+        [Route("api/User/{UserID}")]
+        [HttpGet]
+        public IHttpActionResult getLearner(int UserID, Person People)
+        {
+            var query = from p in db.People
+                        join c in db.Centres on p.Centre_ID equals c.Centre_ID
+                        where p.Person_ID == UserID
+                        select new
+                        {
+                            Person_ID = p.Person_ID, 
+                            Centre_ID = p.Centre_ID,
+                            Centre_Name = c.Centre_Name,
+                            Capacity = c.Centre_Capacity, 
+                            Name = p.Person_Name, 
+                            Surname = p.Person_Surname, 
+                            School = p.Person_School, 
+                            Grade = p.Person_Level, 
+                        };
+
+
+            List<dynamic> Person = new List<dynamic>();
+            try
+            {
+                Person = query.ToList<dynamic>();
+            }
+            catch (Exception e)
+            {
+                return Content(HttpStatusCode.BadRequest, "Error");
+
+            }
+            if (Person.Count > 0)
+            {
+                dynamic toReturn = new ExpandoObject();
+                toReturn.PersonList = People;
+
+                return Content(HttpStatusCode.OK, toReturn);
+            }
+            else
+            {
+                return Content(HttpStatusCode.BadRequest, "There is no specified user.");
+            }
+        }
+
         [HttpGet]
         [EnableCors(origins: "*", headers: "*", methods: "*")]
-        [Route("api/Subject/{id}")]
+        [Route("api/Subjects/{id}")]
         public IHttpActionResult getSubject(int id)
         {
             dynamic toReturn = new ExpandoObject();
@@ -75,7 +124,9 @@ namespace Inspire_API.Controllers
                             where ps.Subject_ID == id
                             select new
                             { 
-                            
+                                Subject_ID = s.Subject_ID, 
+                                Name = s.Subject_Name,
+                                Person_ID = ps.Person_ID
                             };
 
 
@@ -95,7 +146,7 @@ namespace Inspire_API.Controllers
             }
         }
 
-        [Route("api/Course/put/{id}")]
+        [Route("api/Course/update/{id}")]
         [EnableCors(origins: "*", headers: "*", methods: "*")]
         public IHttpActionResult putCourse(int id, Course putCourse)
         {
@@ -126,12 +177,42 @@ namespace Inspire_API.Controllers
             }
         }
 
+        [Route("api/Subject/update/{id}")]
+        [EnableCors(origins: "*", headers: "*", methods: "*")]
+        public IHttpActionResult putSubject(int id, Subject putSubject)
+        {
+            Subject toUpdate = new Subject();
+            try
+            {
+                toUpdate = db.Subjects.Where(f => f.Subject_ID == id).FirstOrDefault();
+                toUpdate.Subject_Name= putSubject.Subject_Name;
+                db.SaveChanges();
+
+                var auditQuery =
+                db.SaveChanges();
+
+                return Content(HttpStatusCode.OK, "1 Row Affected");
+            }
+            catch (Exception e)
+            {
+                if (!CourseExists(id))
+                {
+
+                    return Content(HttpStatusCode.BadRequest, "Subject doesnt exist");
+                }
+                else
+                {
+                    return Content(HttpStatusCode.BadRequest, "Edit Failed");
+                }
+            }
+        }
+
         private bool CourseExists(int id)
         {
             throw new NotImplementedException();
         }
 
-        [Route("api/Course/put/{id}")]
+        [Route("api/Person/update/{id}")]
         [EnableCors(origins: "*", headers: "*", methods: "*")]
         public IHttpActionResult putPerson(int id, Person putPerson)
         {
@@ -192,7 +273,9 @@ namespace Inspire_API.Controllers
                                 where pc.Course_ID == userID
                                 select new
                                 {
-
+                                    Course_ID = c.Course_ID, 
+                                    Capacity = c.Course_Capacity, 
+                                    Name = c.Course_Name
                                 };
 
                     newEntry.Course_ID = addedCourseID;
@@ -227,7 +310,7 @@ namespace Inspire_API.Controllers
 
         [EnableCors(origins: "*", headers: "*", methods: "*")]
         [HttpPost]
-        [Route("api/Subject/add/{UserID}")]
+        [Route("api/Subjects/add/{UserID}")]
         public IHttpActionResult postSubject(int userID, Subject newSubject)
         {
             Person_Course newEntry = new Person_Course();
@@ -243,9 +326,11 @@ namespace Inspire_API.Controllers
                     var query = from s in db.Subjects
                                 join ps in db.PersonSubjects on s.Subject_ID equals ps.Subject_ID
                                 where s.Subject_ID == userID
-                                select new 
-                                { 
-
+                                select new
+                                {
+                                    Subject_ID = s.Subject_ID,
+                                    Name = s.Subject_Name,
+                                    Grade = ps.Person_Grade
                                 };
 
 
@@ -262,7 +347,7 @@ namespace Inspire_API.Controllers
                     db.Subjects.Remove(newSubject);
                     try
                     {
-                        db.Person_Course(newEntry);
+                        db.Person_Course.Add(newEntry);
                     }
                     catch (Exception x)
                     {
@@ -281,7 +366,7 @@ namespace Inspire_API.Controllers
         }
 
 
-        [Route("api/Farm/delete/{id}")]
+        [Route("api/Subject/delete/{id}")]
         [EnableCors(origins: "*", headers: "*", methods: "*")]
         public IHttpActionResult deleteSubject(int id)
         {
@@ -291,8 +376,16 @@ namespace Inspire_API.Controllers
                 var subject = db.Subjects.Where(x => x.PersonSubject.Subject_ID == id).FirstOrDefault();
                 db.SaveChanges();
 
-                var auditQuery = 
-                
+                var auditQuery = from s in db.Subjects
+                                 join ps in db.PersonSubjects on s.Subject_ID equals ps.Subject_ID
+                                 where s.Subject_ID == id
+                                 select new
+                                 {
+                                     Subject_ID = s.Subject_ID,
+                                     Name = s.Subject_Name,
+                                     Grade = ps.Person_Grade
+                                 };
+
                 db.SaveChanges();
 
             }
@@ -319,8 +412,39 @@ namespace Inspire_API.Controllers
                                  where p.Person_ID == id
                                  select new
                                  {
-
+                                     Person_ID = p.Person_ID
                                  };
+
+                db.SaveChanges();
+
+            }
+            catch (Exception e)
+            {
+                return Content(HttpStatusCode.BadRequest, "Delete failed");
+            }
+            return Content(HttpStatusCode.OK, "1 Row affected");
+        }
+
+        [Route("api/Course/delete/{id}")]
+        [EnableCors(origins: "*", headers: "*", methods: "*")]
+        public IHttpActionResult deleteCourse(int id)
+        {
+            try
+            {
+                var Person = db.People.Where(f => f.Person_ID == id).FirstOrDefault();
+                Person.Is_Active = false;
+                db.SaveChanges();
+
+                var auditQuery  = from c in db.Courses
+                                             join pc in db.Person_Course on
+                                             c.Course_ID equals pc.Course_ID
+                                             where pc.Course_ID == id
+                                             select new
+                                             {
+                                                 Course_ID = c.Course_ID,
+                                                 Capacity = c.Course_Capacity,
+                                                 Name = c.Course_Name
+                                             };
 
                 db.SaveChanges();
 
@@ -419,13 +543,12 @@ namespace Inspire_API.Controllers
             try
             {
                 InspireEntities objEntity = new InspireEntities();
-                lstFile = objEntity.People.Select(a => new Person
+                lstFile = (IEnumerable<Register>)objEntity.People.Select(a => new Person
                 {
                     Person_ID = a.Person_ID,
                     Person_Email = a.Person_Email,
                     Image = url.Scheme + "://" + url.Host + ":" + url.Port + "/Files/" + a.Image,
-                    DocFile = a.DocFile,
-                    ImageName = a.Image
+                    DocFile = a.DocFile
                 }).ToList();
             }
             catch (Exception)
